@@ -1,0 +1,39 @@
+// UI.gs - HTML rendering functions
+
+function showLoginPage(message = '') {
+  const template = HtmlService.createTemplateFromFile('Login');
+  template.message = message;
+  return template.evaluate()
+    .setTitle('Report Management System - Login')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function showHomePage(userEmail, message = '') {
+  const userInfo = getUserInfo(userEmail);
+  if (!userInfo) {
+    return showLoginPage('Session expired. Please login again.');
+  }
+  
+  const template = HtmlService.createTemplateFromFile('Home');
+  template.userInfo = userInfo;
+  template.message = message;
+  
+  // Don't preload all reports, instead just set an empty array
+  template.reports = [];
+  
+  template.users = getAllUsers();
+  
+  // Get current date/time info for default filter values
+  const now = new Date();
+  template.currentYear = now.getFullYear();
+  template.currentMonth = now.getMonth() + 1;
+  template.currentWeek = getWeekNumber(now);
+  template.currentDate = formatDateString(now);
+  
+  // Add equipment options
+  template.equipmentOptions = getCustomEquipmentOptions();
+  
+  return template.evaluate()
+    .setTitle('Report Management System - Home')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}

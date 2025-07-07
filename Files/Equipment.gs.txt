@@ -1,0 +1,49 @@
+// Equipment.gs - Equipment management functions
+
+function getCustomEquipmentOptions() {
+  // Look for or create a sheet to store custom equipment options
+  let equipmentSheet = ss.getSheetByName('EquipmentOptions');
+  if (!equipmentSheet) {
+    equipmentSheet = ss.insertSheet('EquipmentOptions');
+    equipmentSheet.appendRow(['Equipment']);
+    
+    // Add default options
+    const defaultOptions = ['Dumper', 'Shovel', 'Forklift', 'Crane', 'Truck'];
+    defaultOptions.forEach(option => equipmentSheet.appendRow([option]));
+  }
+  
+  // Get all equipment options from the sheet
+  const data = equipmentSheet.getDataRange().getValues();
+  const options = [];
+  
+  // Skip header row
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0]) {
+      options.push(data[i][0]);
+    }
+  }
+  
+  return options;
+}
+
+// Add this function to save a new equipment option
+function addNewEquipmentOption(option) {
+  let equipmentSheet = ss.getSheetByName('EquipmentOptions');
+  if (!equipmentSheet) {
+    // Create the sheet if it doesn't exist
+    equipmentSheet = ss.insertSheet('EquipmentOptions');
+    equipmentSheet.appendRow(['Equipment']);
+  }
+  
+  // Check if option already exists
+  const data = equipmentSheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === option) {
+      return false; // Option already exists
+    }
+  }
+  
+  // Add new option
+  equipmentSheet.appendRow([option]);
+  return true;
+}

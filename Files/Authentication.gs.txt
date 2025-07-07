@@ -1,0 +1,65 @@
+// Authentication.gs - User authentication functions
+
+function handleLogin(e) {
+  const email = e.parameter.email;
+  const password = e.parameter.password;
+  
+  // Find user in Users sheet
+  const userData = userSheet.getDataRange().getValues();
+  for (let i = 1; i < userData.length; i++) {
+    if (userData[i][0] === email && userData[i][1] === password) {
+      return showHomePage(email);
+    }
+  }
+  
+  // If login fails
+  return showLoginPage('Invalid email or password');
+}
+
+function handleSignup(e) {
+  const email = e.parameter.email;
+  const password = e.parameter.password;
+  const name = e.parameter.name;
+  
+  // Check if user already exists
+  const userData = userSheet.getDataRange().getValues();
+  for (let i = 1; i < userData.length; i++) {
+    if (userData[i][0] === email) {
+      return showLoginPage('Email already exists');
+    }
+  }
+  
+  // Add new user
+  userSheet.appendRow([email, password, name, 'user']);
+  return showLoginPage('Account created successfully! Please login.');
+}
+
+function getUserInfo(email) {
+  const userData = userSheet.getDataRange().getValues();
+  for (let i = 1; i < userData.length; i++) {
+    if (userData[i][0] === email) {
+      return {
+        email: userData[i][0],
+        name: userData[i][2],
+        role: userData[i][3],
+        department: 'HR' // Added default department for display
+      };
+    }
+  }
+  return null;
+}
+
+function getAllUsers() {
+  const userData = userSheet.getDataRange().getValues();
+  const users = [];
+  
+  for (let i = 1; i < userData.length; i++) {
+    users.push({
+      email: userData[i][0],
+      name: userData[i][2],
+      role: userData[i][3]
+    });
+  }
+  
+  return users;
+}

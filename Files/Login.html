@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 500px;
+        width: 90%;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        font-size: 24px;
+      }
+      .tabs {
+        display: flex;
+        margin-bottom: 20px;
+      }
+      .tab {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        cursor: pointer;
+        background: #f1f1f1;
+      }
+      .tab.active {
+        background: #007bff;
+        color: white;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input, select {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0069d9;
+      }
+      .message {
+        text-align: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 600px) {
+        .container {
+          width: 95%;
+          margin: 10px auto;
+          padding: 15px;
+        }
+        h1 {
+          font-size: 20px;
+        }
+        .tab {
+          padding: 8px 5px;
+          font-size: 14px;
+        }
+        input, select, button {
+          padding: 10px 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Report Management System</h1>
+      
+      <?if(message) {?>
+        <div class="message <?= message.includes('Invalid') || message.includes('expired') ? 'error' : 'success' ?>">
+          <?= message ?>
+        </div>
+      <?}?>
+      
+      <div class="tabs">
+        <div class="tab active" id="login-tab">Login</div>
+        <div class="tab" id="signup-tab">Sign Up</div>
+      </div>
+      
+      <div class="tab-content active" id="login-content">
+        <form action="<?= ScriptApp.getService().getUrl() ?>" method="post">
+          <input type="hidden" name="action" value="login">
+          
+          <div class="form-group">
+            <label for="login-email">Email:</label>
+            <input type="email" id="login-email" name="email" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="login-password">Password:</label>
+            <input type="password" id="login-password" name="password" required>
+          </div>
+          
+          <button type="submit">Login</button>
+        </form>
+      </div>
+      
+      <div class="tab-content" id="signup-content">
+        <form action="<?= ScriptApp.getService().getUrl() ?>" method="post">
+          <input type="hidden" name="action" value="signup">
+          
+          <div class="form-group">
+            <label for="signup-name">Full Name:</label>
+            <input type="text" id="signup-name" name="name" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="signup-email">Email:</label>
+            <input type="email" id="signup-email" name="email" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="signup-password">Password:</label>
+            <input type="password" id="signup-password" name="password" required>
+          </div>
+          
+          <!-- Department dropdown removed as requested -->
+          
+          <button type="submit">Sign Up</button>
+        </form>
+      </div>
+    </div>
+    
+    <script>
+      // Tab switching functionality
+      document.getElementById('login-tab').addEventListener('click', function() {
+        document.getElementById('login-tab').classList.add('active');
+        document.getElementById('signup-tab').classList.remove('active');
+        document.getElementById('login-content').classList.add('active');
+        document.getElementById('signup-content').classList.remove('active');
+      });
+      
+      document.getElementById('signup-tab').addEventListener('click', function() {
+        document.getElementById('signup-tab').classList.add('active');
+        document.getElementById('login-tab').classList.remove('active');
+        document.getElementById('signup-content').classList.add('active');
+        document.getElementById('login-content').classList.remove('active');
+      });
+    </script>
+  </body>
+</html>

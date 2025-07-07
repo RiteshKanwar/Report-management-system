@@ -1,0 +1,68 @@
+// Code.gs - Main entry point with global variables and core functions
+
+// Global variables
+let ss = SpreadsheetApp.getActiveSpreadsheet();
+let userSheet = ss.getSheetByName('Users');
+let indexSheet = ss.getSheetByName('ReportIndex');
+
+// Constants
+const SHEET_HEADERS = {
+  REPORTS: ['Timestamp', 'ReportId', 'CreatedBy', 'Date', 'Shift', 'Machine / Equipment', 'Hour Worked', 'HM Report Description', 
+            'AssignedTo', 'Status', 'Location', 'Remarks', 'Item Description', 'Year', 'Month', 'Week'],
+  USERS: ['Email', 'Password', 'Name', 'Role'],
+  INDEX: ['SheetName', 'Year', 'Month', 'StartDate', 'EndDate', 'ReportCount']
+};
+
+// Main function to render the web app
+function doGet(e) {
+  setupDatabase();
+  
+  // Check if user is logged in (via URL parameter or from a previous session)
+  const action = e.parameter.action;
+  const userEmail = e.parameter.email || '';
+  
+  if (action === 'login' && userEmail) {
+    return showHomePage(userEmail);
+  } else if (action === 'logout') {
+    return showLoginPage();
+  } else {
+    // Show login page by default
+    return showLoginPage();
+  }
+}
+
+// Handle POST requests (form submissions)
+function doPost(e) {
+  setupDatabase();
+  
+  const action = e.parameter.action;
+  
+  if (action === 'login') {
+    return handleLogin(e);
+  } else if (action === 'signup') {
+    return handleSignup(e);
+  } else if (action === 'addReport') {
+    return handleAddReport(e);
+  } else if (action === 'updateReport') {
+    return handleUpdateReport(e);
+  } else if (action === 'deleteReport') {
+    return handleDeleteReport(e);
+  } else if (action === 'addEquipment') {
+    // Handler for adding equipment
+    const equipment = e.parameter.equipment;
+    const email = e.parameter.userEmail;
+    
+    if (equipment && equipment.trim() !== '') {
+      addNewEquipmentOption(equipment.trim());
+    }
+    
+    return showHomePage(email, 'Equipment option added successfully!');
+  } else {
+    return showLoginPage();
+  }
+}
+
+// Helper function to include other HTML files
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}

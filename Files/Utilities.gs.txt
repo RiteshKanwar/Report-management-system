@@ -1,0 +1,49 @@
+// Utilities.gs - Helper functions
+
+// Get weekly date range
+function getWeekDates(date) {
+  const currentDay = date.getDay(); // 0 = Sunday, 6 = Saturday
+  const startOfWeek = new Date(date);
+  startOfWeek.setDate(date.getDate() - currentDay);
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+  
+  return { startDate: startOfWeek, endDate: endOfWeek };
+}
+
+// Get week number for a date
+function getWeekNumber(date) {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+function generateReportId() {
+  return 'R' + new Date().getTime().toString().slice(-8);
+}
+
+// Helper function to format dates consistently
+function formatDateString(dateValue) {
+  if (!dateValue) return '';
+  
+  let dateObj;
+  if (dateValue instanceof Date) {
+    dateObj = dateValue;
+  } else {
+    // Try to parse the date string
+    dateObj = new Date(dateValue);
+    if (isNaN(dateObj.getTime())) {
+      // If invalid date, return the original value
+      return dateValue;
+    }
+  }
+  
+  // Format as DD/MM/YYYY
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const year = dateObj.getFullYear();
+  return `${day}/${month}/${year}`;
+}

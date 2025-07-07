@@ -1,0 +1,72 @@
+// Database.gs - Database setup and sheet management functions
+
+// Initialize the database
+function setupDatabase() {
+  // Create Users sheet if it doesn't exist
+  if (!userSheet) {
+    userSheet = ss.insertSheet('Users');
+    userSheet.appendRow(SHEET_HEADERS.USERS);
+    
+    // Add sample admin user
+    userSheet.appendRow(['admin@example.com', 'admin123', 'Admin User', 'admin']);
+    
+    // Add sample employees
+    for (let i = 1; i <= 10; i++) {
+      userSheet.appendRow([
+        `user${i}@example.com`,
+        `password${i}`,
+        `Employee ${i}`,
+        'user'
+      ]);
+    }
+  }
+  
+  // Create Index sheet if it doesn't exist
+  if (!indexSheet) {
+    indexSheet = ss.insertSheet('ReportIndex');
+    indexSheet.appendRow(SHEET_HEADERS.INDEX);
+  }
+  
+  // Ensure we have at least a current month sheet
+  ensureMonthlySheetExists(new Date());
+}
+
+// Sheet management functions
+function getSheetNameForDate(date) {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+  return `Reports_${year}_${month.toString().padStart(2, '0')}`;
+}
+
+function ensureMonthlySheetExists(date) {
+  const sheetName = getSheetNameForDate(date);
+  let sheet = ss.getSheetByName(sheetName);
+  
+  // Create sheet if it doesn't exist
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow(SHEET_HEADERS.REPORTS);
+    
+    // Add this sheet to the index
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const startDate = new Date(year, month - 1, 1).toISOString();
+    const endDate = new Date(year, month, 0).toISOString(); // Last day of month
+    
+    indexSheet.appendRow([sheetName, year, month, startDate, endDate, 0]);
+  }
+  
+  return sheet;
+}
+
+function updateReportCount(sheetName, increment) {
+  const indexData = indexSheet.getDataRange().getValues();
+  
+  for (let i = 1; i < indexData.length; i++) {
+    if (indexData[i][0] === sheetName) {
+      const currentCount = indexData[i][5];
+      indexSheet.getRange(i + 1, 6).setValue(currentCount + increment);
+      break;
+    }
+  }
+}

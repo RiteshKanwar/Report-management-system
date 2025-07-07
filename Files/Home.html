@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+      }
+      .header {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .user-info {
+        display: flex;
+        align-items: center;
+        margin-top: 5px;
+      }
+      .welcome {
+        margin-right: 20px;
+      }
+      .logout {
+        background: none;
+        border: 1px solid white;
+        color: white;
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 3px;
+      }
+      .logout:hover {
+        background-color: rgba(255,255,255,0.1);
+      }
+      .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 10px;
+      }
+      .tabs {
+        margin-bottom: 20px;
+        display: flex;
+      }
+      .tab {
+        padding: 10px 20px;
+        background-color: #f1f1f1;
+        cursor: pointer;
+        margin-right: 5px;
+        border-radius: 5px 5px 0 0;
+      }
+      .tab.active {
+        background-color: #007bff;
+        color: white;
+      }
+      .tab-content {
+        display: none;
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
+      .tab-content.active {
+        display: block;
+      }
+      h2 {
+        margin-top: 0;
+        color: #333;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input, select, textarea {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      textarea {
+        height: 100px;
+        resize: vertical;
+      }
+      button {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0069d9;
+      }
+      
+      table {
+        table-layout: fixed; /* Fixed layout helps with column width consistency */
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle; /* Align content vertically */
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+
+      th:last-child, td:last-child {
+        width: 120px;
+        min-width: 120px; /* Ensure minimum width */
+      }
+      tr:hover {
+        background-color: #f5f5f5;
+      }
+      .message {
+        text-align: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .status-done {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 5px;
+        border-radius: 3px;
+      }
+      .status-processing {
+        background-color: #fff3cd;
+        color: #856404;
+        padding: 5px;
+        border-radius: 3px;
+      }
+      .status-onHold {
+        background-color: #cce5ff;
+        color: #004085;
+        padding: 5px;
+        border-radius: 3px;
+      }
+      .status-notDone {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 5px;
+        border-radius: 3px;
+      }
+      
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        overflow: auto;
+      }
+      .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 20px;
+        border-radius: 5px;
+        width: 80%;
+        max-width: 700px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      }
+      .close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close:hover {
+        color: #007bff;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        white-space: nowrap;
+        padding: 12px; /* Match the padding of other cells */
+        border-bottom: 1px solid #ddd; /* Ensure consistent border */
+      }
+      .btn-edit {
+        padding: 5px 10px;
+        background: #ffc107;
+        color: #212529;
+        font-size: 12px;
+      }
+      .btn-edit:hover {
+        background: #e0a800;
+      }
+      .btn-delete {
+        padding: 5px 10px;
+        background: #dc3545;
+        color: white;
+        font-size: 12px;
+        margin-left: 5px;
+      }
+      .btn-delete:hover {
+        background: #c82333;
+      }
+
+      /* Filter controls */
+      .filter-controls {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-end;
+      }
+      .filter-group {
+        flex: 1;
+        min-width: 200px;
+      }
+      .filter-buttons {
+        display: flex;
+        gap: 10px;
+      }
+      .btn-filter {
+        background-color: #6c757d;
+      }
+      .btn-filter:hover {
+        background-color: #5a6268;
+      }
+      .btn-reset {
+        background-color: #dc3545;
+      }
+      .btn-reset:hover {
+        background-color: #c82333;
+      }
+      .loading {
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+        color: #6c757d;
+      }
+      
+      /* Responsive styles */
+      .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+        margin-bottom: 20px;
+        border-radius: 5px;
+      }
+      #reportsTable {
+        min-width: 1200px; /* Ensures table doesn't shrink too small */
+      }
+      @media screen and (max-width: 576px) {
+        .header {
+        padding: 10px;
+        }
+        .header h1 {
+          font-size: 18px;
+          width: 100%;
+          text-align: center;
+          margin-bottom: 10px;
+        }
+        .user-info {
+          width: 100%;
+          justify-content: center;
+          margin-top: 10px;
+        }
+        .tab {
+          padding: 8px 10px;
+          font-size: 14px;
+        }
+        .tab-content {
+          padding: 15px 10px;
+        }
+        th, td {
+          padding: 8px 5px;
+          font-size: 13px;
+        }
+        .modal-content {
+          width: 95%;
+          margin: 10% auto;
+          padding: 15px;
+        }
+        .filter-group {
+          min-width: 100%;
+        }
+        .action-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        
+        .btn-edit, .btn-delete {
+          padding: 4px 8px;
+          font-size: 11px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Report Management System</h1>
+      <div class="user-info">
+        <div class="welcome">
+          Welcome, <?= userInfo.name ?> (<?= userInfo.department ?>)
+        </div>
+        <a href="<?= ScriptApp.getService().getUrl() ?>?action=logout">
+          <button class="logout">Logout</button>
+        </a>
+      </div>
+    </div>
+    
+    <div class="container">
+      <?if(message) {?>
+        <div class="message success">
+          <?= message ?>
+        </div>
+      <?}?>
+      
+      <div class="tabs">
+        <div class="tab active" id="add-report-tab">Add Report</div>
+        <div class="tab" id="view-reports-tab">View Reports</div>
+      </div>
+      
+      <div class="tab-content active" id="add-report-content">
+        <h2>Add New Report</h2>
+        <form action="<?= ScriptApp.getService().getUrl() ?>" method="post" id="addReportForm">
+          <input type="hidden" name="action" value="addReport">
+          <input type="hidden" name="userEmail" value="<?= userInfo.email ?>">
+          
+          <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required value="<?= new Date().toISOString().split('T')[0] ?>">
+          </div>
+          
+          <div class="form-group">
+            <label for="shift">Shift:</label>
+            <select id="shift" name="shift" required>
+              <option value="">Select Shift</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="machineEquipment">Machine / Equipment: <span style="color: red;">*</span></label>
+            <select id="machineEquipment" name="machineEquipment" required onchange="handleEquipmentChange(this.value)">
+              <option value="">Select Machine / Equipment</option>
+              <? equipmentOptions.forEach(function(option) { ?>
+                <option value="<?= option ?>"><?= option ?></option>
+              <? }); ?>
+              <option value="__add_new__">+ Add New Option</option>
+            </select>
+            
+            <!-- New equipment form - hidden by default -->
+            <div id="newEquipmentForm" style="display:none; margin-top:10px; padding:10px; border:1px solid #ddd; border-radius:4px;">
+              <label for="newEquipment">Add New Equipment:</label>
+              <div style="display:flex; gap:10px; margin-top:5px;">
+                <input type="text" id="newEquipment" style="flex-grow:1;" placeholder="Enter equipment name">
+                <button type="button" onclick="saveNewEquipment()" style="flex-shrink:0; white-space:nowrap;">Add Option</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="hoursWorked">Hour Worked:</label>
+            <input type="number" id="hoursWorked" name="hoursWorked" min="0" step="1" placeholder="Enter number only">
+            <small style="color:#666;">(Optional - hours will be added automatically)</small>
+          </div>
+
+          <div class="form-group">
+            <label for="description">HM Report Description: <span style="color: red;">*</span></label>
+            <textarea id="description" name="description" required></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="assignedTo">Assigned To: <span style="color: red;">*</span></label>
+            <input type="text" id="assignedTo" name="assignedTo" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="status">Status: <span style="color: red;">*</span></label>
+            <select id="status" name="status" required>
+              <option value="">Select Status</option>
+              <option value="Done">Done</option>
+              <option value="Processing">Processing</option>
+              <option value="On Hold">On Hold</option>
+              <option value="Not Done">Not Done</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="location">Location: <span style="color: red;">*</span></label>
+            <input type="text" id="location" name="location" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="remarks">Remarks:</label>
+            <textarea id="remarks" name="remarks"></textarea>
+            <small style="color:#666;">(Optional)</small>
+          </div>
+          <div class="form-group">
+            <label for="itemDescription">Item Description:</label>
+            <textarea id="itemDescription" name="itemDescription"></textarea>
+            <small style="color:#666;">(Optional)</small>
+          </div>
+          <button type="submit">Submit Report</button>
+        </form>
+      </div>
+      
+      <div class="tab-content" id="view-reports-content">
+        <h2>View Reports</h2>
+        
+        <!-- Filter Controls -->
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="filterType">View Type:</label>
+            <select id="filterType" onchange="handleFilterTypeChange()">
+              <option value="all">All Reports</option>
+              <option value="daily">Daily View</option>
+              <option value="weekly">Weekly View</option>
+              <option value="monthly">Monthly View</option>
+              <option value="yearly">Yearly View</option>
+            </select>
+          </div>
+
+          <div class="filter-group" id="dayFilter" style="display:none;">
+            <label for="dayDate">Select Date:</label>
+            <input type="date" id="dayDate" value="<?= currentDate ?>">
+          </div>
+
+          <div class="filter-group" id="weekFilter" style="display:none;">
+            <label for="weekDate">Select Week:</label>
+            <input type="date" id="weekDate" value="<?= currentDate ?>">
+          </div>
+          
+          <div class="filter-group" id="monthFilter" style="display:none;">
+            <label for="monthDate">Select Month:</label>
+            <input type="month" id="monthDate" value="<?= currentYear ?>-<?= currentMonth.toString().padStart(2, '0') ?>">
+          </div>
+          
+          <div class="filter-group" id="yearFilter" style="display:none;">
+            <label for="yearSelect">Select Year:</label>
+            <select id="yearSelect">
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="<?= currentYear ?>" selected><?= currentYear ?></option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label for="statusFilter">Status:</label>
+            <select id="statusFilter">
+              <option value="">All Statuses</option>
+              <option value="Done">Done</option>
+              <option value="Processing">Processing</option>
+              <option value="On Hold">On Hold</option>
+              <option value="Not Done">Not Done</option>
+            </select>
+          </div>
+          
+          <div class="filter-buttons">
+            <button type="button" onclick="applyFilter()" class="btn-filter">Apply Filter</button>
+            <button type="button" onclick="resetFilter()" class="btn-reset">Reset</button>
+          </div>
+        </div>
+        
+        <div id="loadingIndicator" class="loading" style="display:none;">
+          Loading reports...
+        </div>
+        
+        <div class="table-responsive">
+          <table id="reportsTable">
+            <thead>
+              <tr>
+                <th>Report ID</th>
+                <th>Date</th>
+                <th>Shift</th>
+                <th>Machine / Equipment</th>
+                <th>Hour Worked</th>
+                <th>HM Report Description</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Remarks</th>
+                <th>Item Description</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reportsTableBody">
+              <? if(reports && reports.length > 0) { 
+                  reports.forEach(function(report) { 
+                    // Format date
+                    let formattedDate;
+                    try {
+                      let date = new Date(report.date);
+                      formattedDate = date.toLocaleDateString();
+                    } catch(e) {
+                      formattedDate = report.date || "";
+                    }
+                    
+                    // Determine status class
+                    let statusClass = "";
+                    if (report.status === "Done") statusClass = "status-done";
+                    else if (report.status === "Processing") statusClass = "status-processing";
+                    else if (report.status === "On Hold") statusClass = "status-onHold";
+                    else if (report.status === "Not Done") statusClass = "status-notDone";
+                    
+                    // Safely handle strings for the modal - ensure they're strings before using replace
+                    let safeDescription = typeof report.description === 'string' ? report.description.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+                    let safeRemarks = typeof report.remarks === 'string' ? report.remarks.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+                    let safeReportId = typeof report.reportId === 'string' ? report.reportId.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+                    let safeMachineEquipment = typeof report.machineEquipment === 'string' ? report.machineEquipment.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+                    let safeHoursWorked = typeof report.hoursWorked === 'string' ? report.hoursWorked.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+                    let safeLocation = typeof report.location === 'string' ? report.location.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+                    let safeStatus = typeof report.status === 'string' ? report.status.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+              ?>
+                <tr>
+                  <td><?= safeReportId ?></td>
+                  <td><?= formattedDate ?></td>
+                  <td><?= report.shift || "" ?></td>
+                  <td><?= safeMachineEquipment ?></td>
+                  <td><?= safeHoursWorked || "-" ?></td>
+                  <td><?= safeDescription ?></td>
+                  <td><?= safeLocation ?></td>
+                  <td><span class="<?= statusClass ?>"><?= safeStatus ?></span></td>
+                  <td><?= safeRemarks || "-" ?></td>
+                  <td class="action-buttons">
+                    <button class="btn-edit" onclick="openEditModal('<?= safeReportId ?>', '<?= report.date ?>', '<?= report.shift ?>', '<?= safeMachineEquipment ?>', '<?= safeHoursWorked.replace(/ hours$/, "") ?>', '<?= safeDescription ?>', '<?= safeLocation ?>', '<?= safeStatus ?>', '<?= safeRemarks ?>')">Edit</button>
+                  </td>
+                </tr>
+              <? }); 
+                } else { ?>
+                <tr>
+                  <td colspan="10" style="text-align: center; padding: 20px;">No reports found</td>
+                </tr>
+              <? } ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Edit Report Modal -->
+      <div id="editModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeEditModal()">&times;</span>
+          <h2>Edit Report</h2>
+          <form id="editReportForm" action="<?= ScriptApp.getService().getUrl() ?>" method="post">
+            <input type="hidden" name="action" value="updateReport">
+            <input type="hidden" name="userEmail" value="<?= userInfo.email ?>">
+            <input type="hidden" id="editReportId" name="reportId">
+            
+            <div class="form-group">
+              <label for="editDate">Date:</label>
+              <input type="date" id="editDate" name="date" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="editShift">Shift:</label>
+              <select id="editShift" name="shift" required>
+                <option value="">Select Shift</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="editMachineEquipment">Machine / Equipment: <span style="color: red;">*</span></label>
+              <select id="editMachineEquipment" name="machineEquipment" required onchange="handleEditEquipmentChange(this.value)">
+                <option value="">Select Machine / Equipment</option>
+                <? equipmentOptions.forEach(function(option) { ?>
+                  <option value="<?= option ?>"><?= option ?></option>
+                <? }); ?>
+                <option value="__add_new__">+ Add New Option</option>
+              </select>
+              
+              <!-- New equipment form for edit modal - hidden by default -->
+              <div id="editNewEquipmentForm" style="display:none; margin-top:10px; padding:10px; border:1px solid #ddd; border-radius:4px;">
+                <label for="editNewEquipment">Add New Equipment:</label>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                  <input type="text" id="editNewEquipment" style="flex-grow:1;" placeholder="Enter equipment name">
+                  <button type="button" onclick="saveEditNewEquipment()" style="flex-shrink:0; white-space:nowrap;">Add Option</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="editHoursWorked">Hour Worked:</label>
+              <input type="number" id="editHoursWorked" name="hoursWorked" min="0" step="1" placeholder="Enter number only">
+              <small style="color:#666;">(Optional - hours will be added automatically)</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="editDescription">HM Report Description: <span style="color: red;">*</span></label>
+              <textarea id="editDescription" name="description" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="editAssignedTo">Assigned To: <span style="color: red;">*</span></label>
+              <input type="text" id="editAssignedTo" name="assignedTo" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="editLocation">Location: <span style="color: red;">*</span></label>
+              <input type="text" id="editLocation" name="location" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="editStatus">Status: <span style="color: red;">*</span></label>
+              <select id="editStatus" name="status" required>
+                <option value="">Select Status</option>
+                <option value="Done">Done</option>
+                <option value="Processing">Processing</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Not Done">Not Done</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="editRemarks">Remarks:</label>
+              <textarea id="editRemarks" name="remarks"></textarea>
+              <small style="color:#666;">(Optional)</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="editItemDescription">Item Description:</label>
+              <textarea id="editItemDescription" name="itemDescription"></textarea>
+              <small style="color:#666;">(Optional)</small>
+            </div>
+            
+            <button type="submit">Update Report</button>
+          </form>
+        </div>
+      </div>
+      <div id="deleteModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+          <span class="close" onclick="closeDeleteModal()">&times;</span>
+          <h2>Confirm Delete</h2>
+          <p>Are you sure you want to delete this report?</p>
+          <p>This action cannot be undone.</p>
+          
+          <form id="deleteReportForm" action="<?= ScriptApp.getService().getUrl() ?>" method="post">
+            <input type="hidden" name="action" value="deleteReport">
+            <input type="hidden" name="userEmail" value="<?= userInfo.email ?>">
+            <input type="hidden" id="deleteReportId" name="reportId">
+            
+            <div style="margin-top: 20px; text-align: right;">
+              <button type="button" onclick="closeDeleteModal()" style="background-color: #6c757d;">Cancel</button>
+              <button type="submit" style="background-color: #dc3545; margin-left: 10px;">Delete</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // Tab switching functionality
+      document.getElementById('add-report-tab').addEventListener('click', function() {
+        document.getElementById('add-report-tab').classList.add('active');
+        document.getElementById('view-reports-tab').classList.remove('active');
+        document.getElementById('add-report-content').classList.add('active');
+        document.getElementById('view-reports-content').classList.remove('active');
+      });
+      
+      document.getElementById('view-reports-tab').addEventListener('click', function() {
+        document.getElementById('view-reports-tab').classList.add('active');
+        document.getElementById('add-report-tab').classList.remove('active');
+        document.getElementById('view-reports-content').classList.add('active');
+        document.getElementById('add-report-content').classList.remove('active');
+        
+        // Load reports when switching to this tab
+        applyFilter();
+      });
+      
+      // Form validation for hours worked
+      document.getElementById('hoursWorked').addEventListener('input', function(e) {
+        // Ensure only numbers are entered
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+      });
+      
+      // Modal functionality
+      function openEditModal(reportId, date, shift, machineEquipment, hoursWorked, description, location, status, remarks, assignedTo, itemDescription) {
+        // Convert hoursWorked to numeric format for editing
+        if (hoursWorked) {
+          // Strip "hours" suffix if present
+          hoursWorked = hoursWorked.replace(/ hours$/, "");
+        }
+        
+        document.getElementById('editReportId').value = reportId;
+        document.getElementById('editDate').value = date;
+        document.getElementById('editShift').value = shift;
+        document.getElementById('editMachineEquipment').value = machineEquipment;
+        document.getElementById('editHoursWorked').value = hoursWorked || '';
+        document.getElementById('editDescription').value = description;
+        document.getElementById('editLocation').value = location;
+        document.getElementById('editStatus').value = status;
+        document.getElementById('editRemarks').value = remarks || '';
+        document.getElementById('editItemDescription').value = itemDescription || '';
+        
+        // Set assignedTo field
+        const assignedToField = document.getElementById('editAssignedTo');
+        if (assignedToField) {
+          assignedToField.value = assignedTo || '';
+        }
+        
+        document.getElementById('editModal').style.display = 'block';
+      }
+      
+      // Close modal when clicking outside of it
+      window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target == modal) {
+          closeEditModal();
+        }
+      }
+
+
+    // Delete Modal functionality
+      function openDeleteModal(reportId) {
+        document.getElementById('deleteReportId').value = reportId;
+        document.getElementById('deleteModal').style.display = 'block';
+      }
+      
+      function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+      }
+      
+      // Update the existing window.onclick function to close both modals
+      window.onclick = function(event) {
+        const editModal = document.getElementById('editModal');
+        const deleteModal = document.getElementById('deleteModal');
+        
+        if (event.target == editModal) {
+          closeEditModal();
+        }
+        
+        if (event.target == deleteModal) {
+          closeDeleteModal();
+        }
+      }
+      
+      // Date formatting helpers
+      function formatDate(date) {
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return ''; // Return empty string for invalid dates
+        
+        const month = '' + (d.getMonth() + 1);
+        const day = '' + d.getDate();
+        const year = d.getFullYear();
+        
+        return [year, month.padStart(2, '0'), day.padStart(2, '0')].join('-');
+      }
+
+      function formatOriginalDate(dateStr) {
+        if (!dateStr) return '';
+        
+        // If the date is already in DD/MM/YYYY format, convert back to YYYY-MM-DD
+        if (dateStr.includes('/')) {
+          const parts = dateStr.split('/');
+          if (parts.length === 3) {
+            const day = parts[0];
+            const month = parts[1];
+            const year = parts[2];
+            return `${year}-${month}-${day}`;
+          }
+        }
+        
+        // If date is already in YYYY-MM-DD format or another format, return as is
+        return dateStr;
+      }
+      
+      // Filter functionality
+      function handleFilterTypeChange() {
+        const filterType = document.getElementById('filterType').value;
+        
+        // Hide all specific filter controls
+        document.getElementById('dayFilter').style.display = 'none';
+        document.getElementById('weekFilter').style.display = 'none';
+        document.getElementById('monthFilter').style.display = 'none';
+        document.getElementById('yearFilter').style.display = 'none';
+        
+        // Show the appropriate filter control
+        if (filterType === 'daily') {
+          document.getElementById('dayFilter').style.display = 'block';
+        } else if (filterType === 'weekly') {
+          document.getElementById('weekFilter').style.display = 'block';
+        } else if (filterType === 'monthly') {
+          document.getElementById('monthFilter').style.display = 'block';
+        } else if (filterType === 'yearly') {
+          document.getElementById('yearFilter').style.display = 'block';
+        }
+      }
+      
+      function applyFilter() {
+        const filterType = document.getElementById('filterType').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        let filterParams = {
+          type: filterType,
+          status: statusFilter
+        };
+        
+        // Show loading indicator
+        document.getElementById('loadingIndicator').style.display = 'block';
+        document.getElementById('reportsTableBody').innerHTML = '<tr><td colspan="10" style="text-align: center;">Loading...</td></tr>';
+        
+        if (filterType === 'daily') {
+          const dayDate = document.getElementById('dayDate').value;
+          filterParams.date = dayDate;
+        } else if (filterType === 'weekly') {
+          const weekDate = document.getElementById('weekDate').value;
+          filterParams.date = weekDate;
+        } else if (filterType === 'monthly') {
+          const monthDate = document.getElementById('monthDate').value;
+          // Convert YYYY-MM to date format
+          const year = monthDate.split('-')[0];
+          const month = monthDate.split('-')[1];
+          filterParams.date = `${year}-${month}-01`; // First day of month
+        } else if (filterType === 'yearly') {
+          const year = document.getElementById('yearSelect').value;
+          filterParams.date = `${year}-01-01`; // First day of year
+        }
+        
+        // Call server function to get filtered reports
+        google.script.run
+          .withSuccessHandler(function(reports) {
+            renderReports(reports);
+            document.getElementById('loadingIndicator').style.display = 'none';
+          })
+          .withFailureHandler(function(error) {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('reportsTableBody').innerHTML = 
+              '<tr><td colspan="10" style="text-align: center; color: red;">Error loading reports: ' + error + '</td></tr>';
+            console.error('Error loading reports:', error);
+          })
+          .getFilteredReports(filterParams);
+      }
+      
+      function resetFilter() {
+        document.getElementById('filterType').value = 'all';
+        document.getElementById('statusFilter').value = '';
+        handleFilterTypeChange();
+        applyFilter();
+      }
+
+      function handleEquipmentChange(value) {
+        if (value === '__add_new__') {
+          document.getElementById('newEquipmentForm').style.display = 'block';
+        } else {
+          document.getElementById('newEquipmentForm').style.display = 'none';
+        }
+      }
+
+      function handleEditEquipmentChange(value) {
+        if (value === '__add_new__') {
+          document.getElementById('editNewEquipmentForm').style.display = 'block';
+        } else {
+          document.getElementById('editNewEquipmentForm').style.display = 'none';
+        }
+      }
+      
+      function saveNewEquipment() {
+        const newEquipment = document.getElementById('newEquipment').value.trim();
+        if (!newEquipment) {
+          alert('Please enter an equipment name');
+          return;
+        }
+        
+        // Show loading
+        const originalButtonText = event.target.textContent;
+        event.target.textContent = 'Saving...';
+        event.target.disabled = true;
+        
+        // Call server function to save new option
+        google.script.run
+          .withSuccessHandler(function(result) {
+            // Refresh the page to show updated options
+            window.location.reload();
+          })
+          .withFailureHandler(function(error) {
+            alert('Error adding equipment: ' + error);
+            event.target.textContent = originalButtonText;
+            event.target.disabled = false;
+          })
+          .withUserObject(event.target)
+          .addNewEquipmentOption(newEquipment);
+          
+        // Create hidden form for submission
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '<?= ScriptApp.getService().getUrl() ?>';
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'addEquipment';
+        form.appendChild(actionInput);
+        
+        const equipmentInput = document.createElement('input');
+        equipmentInput.type = 'hidden';
+        equipmentInput.name = 'equipment';
+        equipmentInput.value = newEquipment;
+        form.appendChild(equipmentInput);
+        
+        const emailInput = document.createElement('input');
+        emailInput.type = 'hidden';
+        emailInput.name = 'userEmail';
+        emailInput.value = '<?= userInfo.email ?>';
+        form.appendChild(emailInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+      }
+
+      function saveEditNewEquipment() {
+        const newEquipment = document.getElementById('editNewEquipment').value.trim();
+        if (!newEquipment) {
+          alert('Please enter an equipment name');
+          return;
+        }
+        
+        // Show loading
+        const originalButtonText = event.target.textContent;
+        event.target.textContent = 'Saving...';
+        event.target.disabled = true;
+        
+        // Call server function to save new option
+        google.script.run
+          .withSuccessHandler(function(result) {
+            // Update both dropdowns without reloading
+            const mainDropdown = document.getElementById('machineEquipment');
+            const editDropdown = document.getElementById('editMachineEquipment');
+            
+            // Add new option to both dropdowns
+            const newOption = document.createElement('option');
+            newOption.value = newEquipment;
+            newOption.textContent = newEquipment;
+            
+            // Insert before the "Add New" option
+            mainDropdown.insertBefore(newOption.cloneNode(true), mainDropdown.lastChild);
+            editDropdown.insertBefore(newOption, editDropdown.lastChild);
+            
+            // Select the new option in the edit dropdown
+            editDropdown.value = newEquipment;
+            
+            // Hide the form
+            document.getElementById('editNewEquipmentForm').style.display = 'none';
+            
+            // Reset the button
+            event.target.textContent = originalButtonText;
+            event.target.disabled = false;
+          })
+          .withFailureHandler(function(error) {
+            alert('Error adding equipment: ' + error);
+            event.target.textContent = originalButtonText;
+            event.target.disabled = false;
+          })
+          .withUserObject(event.target)
+          .addNewEquipmentOption(newEquipment);
+          
+        // Create hidden form for submission but don't submit it to avoid page reload
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '<?= ScriptApp.getService().getUrl() ?>';
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'addEquipment';
+        form.appendChild(actionInput);
+        
+        const equipmentInput = document.createElement('input');
+        equipmentInput.type = 'hidden';
+        equipmentInput.name = 'equipment';
+        equipmentInput.value = newEquipment;
+        form.appendChild(equipmentInput);
+        
+        const emailInput = document.createElement('input');
+        emailInput.type = 'hidden';
+        emailInput.name = 'userEmail';
+        emailInput.value = '<?= userInfo.email ?>';
+        form.appendChild(emailInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+      }
+      
+      function renderReports(reports) {
+        const tbody = document.getElementById('reportsTableBody');
+        tbody.innerHTML = '';
+        
+        if (!reports || reports.length === 0) {
+          const row = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.colSpan = 11; // Make sure this matches the number of columns in the table header
+          cell.textContent = 'No reports found for the selected criteria';
+          cell.style.textAlign = 'center';
+          cell.style.padding = '20px';
+          row.appendChild(cell);
+          tbody.appendChild(row);
+          return;
+        }
+        
+        reports.forEach(function(report) {
+          const row = document.createElement('tr');
+          
+          // Format date
+          let formattedDate = report.date || "";
+          
+          // Determine status class          
+          let statusClass = "";
+          if (report.status === "Done") statusClass = "status-done";
+          else if (report.status === "Processing") statusClass = "status-processing";
+          else if (report.status === "On Hold") statusClass = "status-onHold";
+          else if (report.status === "Not Done") statusClass = "status-notDone";
+          
+          // Safely escape strings for the modal to prevent script injection
+          const safeDescription = (report.description || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          const safeRemarks = (report.remarks || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          const safeItemDescription = (report.itemDescription || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          const safeReportId = (report.reportId || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          const safeMachineEquipment = (report.machineEquipment || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          const safeHoursWorked = (report.hoursWorked || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          const safeLocation = (report.location || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          const safeStatus = (report.status || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          const safeAssignedTo = (report.assignedTo || "").toString().replace(/'/g, "\\'").replace(/"/g, "&quot;");
+          
+          // Get hours worked without "hours" suffix for edit modal
+          const numericHoursWorked = safeHoursWorked.replace(/ hours$/, "");
+          
+          // Create safe date string for modal (using original format for edit form)
+          const originalDateFormat = formatOriginalDate(report.date);
+          
+          // Build row HTML with proper structure ensuring all columns are present and in correct order
+          row.innerHTML = `
+            <td>${safeReportId}</td>
+            <td>${formattedDate}</td>
+            <td>${report.shift || ""}</td>
+            <td>${safeMachineEquipment}</td>
+            <td>${safeHoursWorked || "-"}</td>
+            <td>${safeDescription}</td>
+            <td>${safeLocation}</td>
+            <td><span class="${statusClass}">${safeStatus}</span></td>
+            <td>${safeRemarks || "-"}</td>
+            <td>${safeItemDescription || "-"}</td>
+            <td class="action-buttons">
+              <button class="btn-edit" onclick="openEditModal('${safeReportId}', '${originalDateFormat}', '${report.shift || ""}', '${safeMachineEquipment}', '${numericHoursWorked}', '${safeDescription}', '${safeLocation}', '${safeStatus}', '${safeRemarks}', '${safeAssignedTo}', '${safeItemDescription}')">Edit</button>
+              <button class="btn-delete" onclick="openDeleteModal('${safeReportId}')">Delete</button>
+            </td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+      }
+      
+      // Initialize filter controls
+      document.addEventListener('DOMContentLoaded', function() {
+          if (window.history && window.history.pushState) {
+            // When page loads or refreshes in Add Report tab, replace current history state 
+            // to prevent form resubmission on refresh
+            window.addEventListener('load', function() {
+              const url = new URL(window.location.href);
+              
+              // If URL has 'action=addReport' parameter, replace it with clean URL
+              if (url.searchParams.has('action') && url.searchParams.get('action') === 'addReport') {
+                const baseUrl = window.location.href.split('?')[0];
+                window.history.replaceState({}, document.title, baseUrl);
+              }
+            });
+            
+            // After form submission, replace URL
+            const addReportForm = document.getElementById('addReportForm');
+            if (addReportForm) {
+              addReportForm.addEventListener('submit', function() {
+                setTimeout(function() {
+                  const url = window.location.href.split('?')[0];
+                  window.history.replaceState({}, document.title, url);
+                }, 1000);
+              });
+            }
+          }
+        handleFilterTypeChange();
+        
+        // Set default date to today
+        const today = new Date();
+        document.getElementById('weekDate').value = formatDate(today);
+        
+        // Set default month to current month
+        const year = today.getFullYear();
+        let month = today.getMonth() + 1;
+        month = month < 10 ? '0' + month : month;
+        document.getElementById('monthDate').value = `${year}-${month}`;
+        
+        // Set default year to current year
+        document.getElementById('yearSelect').value = year;
+        
+        // Form validation for input fields
+        document.getElementById('editHoursWorked').addEventListener('input', function(e) {
+          // Ensure only numbers are entered
+          e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Add event listeners for filter controls
+        document.getElementById('weekDate').addEventListener('change', function() {
+          if (document.getElementById('filterType').value === 'weekly') {
+            applyFilter();
+          }
+        });
+        
+        document.getElementById('monthDate').addEventListener('change', function() {
+          if (document.getElementById('filterType').value === 'monthly') {
+            applyFilter();
+          }
+        });
+        
+        document.getElementById('yearSelect').addEventListener('change', function() {
+          if (document.getElementById('filterType').value === 'yearly') {
+            applyFilter();
+          }
+        });
+        
+        document.getElementById('filterType').addEventListener('change', function() {
+          handleFilterTypeChange();
+          applyFilter();
+        });
+        
+        document.getElementById('statusFilter').addEventListener('change', function() {
+          applyFilter();
+        });
+        
+      });
+    </script>
+  </body>
+</html>

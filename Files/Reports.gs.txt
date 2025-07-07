@@ -1,0 +1,321 @@
+// Reports.gs - Report CRUD operations
+
+function handleAddReport(e) {
+  const email = e.parameter.userEmail;
+  const reportDate = e.parameter.date || new Date().toISOString().split('T')[0]; // Use current date if not specified
+  const shift = e.parameter.shift;
+  const machineEquipment = e.parameter.machineEquipment;
+  let hourWorked = e.parameter.hoursWorked || ''; // Match HTML field name
+  // Format hour worked to ensure it's numeric and has "hours" suffix
+  if (hourWorked) {
+    // Extract numeric part only
+    const numericHours = hourWorked.replace(/[^0-9]/g, '');
+    if (numericHours) {
+      hourWorked = numericHours + ' hours';
+    }
+  }
+  
+  const hmReportDescription = e.parameter.description; // Match HTML field name
+  const assignedTo = e.parameter.assignedTo;
+  const status = e.parameter.status;
+  const location = e.parameter.location;
+  const remarks = e.parameter.remarks || ''; // Optional field
+  const itemDescription = e.parameter.itemDescription || ''; // Optional field
+  
+  const userInfo = getUserInfo(email);
+  if (!userInfo) {
+    return showLoginPage('Session expired. Please login again.');
+  }
+  
+  const now = new Date();
+  const timestamp = now.toISOString();
+  const reportId = generateReportId();
+  
+  // Get date components for filtering
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const week = getWeekNumber(now);
+  
+  // Ensure the appropriate monthly sheet exists and get it
+  const reportSheet = ensureMonthlySheetExists(now);
+  
+  // Add new report to the appropriate sheet
+  reportSheet.appendRow([
+    timestamp,
+    reportId,
+    email,
+    reportDate,
+    shift,
+    machineEquipment,
+    hourWorked,
+    hmReportDescription,
+    assignedTo,
+    status,
+    location,
+    remarks,
+    itemDescription,
+    year,
+    month,
+    week
+  ]);
+  
+  // Update report count in the index
+  updateReportCount(getSheetNameForDate(now), 1);
+  
+  return showHomePage(email, 'Report added successfully!');
+}
+
+// Handle report updates
+function handleUpdateReport(e) {
+  const email = e.parameter.userEmail;
+  const reportId = e.parameter.reportId;
+  const reportDate = e.parameter.date || '';
+  const shift = e.parameter.shift;
+  const machineEquipment = e.parameter.machineEquipment;
+  let hourWorked = e.parameter.hoursWorked || ''; // Match HTML field name
+  // Format hour worked to ensure it's numeric and has "hours" suffix
+  if (hourWorked) {
+    // Extract numeric part only
+    const numericHours = hourWorked.replace(/[^0-9]/g, '');
+    if (numericHours) {
+      hourWorked = numericHours + ' hours';
+    }
+  }
+  
+  const hmReportDescription = e.parameter.description; // Match HTML field name
+  const assignedTo = e.parameter.assignedTo;
+  const status = e.parameter.status;
+  const location = e.parameter.location;
+  const remarks = e.parameter.remarks || '';
+  const itemDescription = e.parameter.itemDescription || '';
+  
+  const userInfo = getUserInfo(email);
+  if (!userInfo) {
+    return showLoginPage('Session expired. Please login again.');
+  }
+  
+  // Find the report across all monthly sheets using the index
+  const indexData = indexSheet.getDataRange().getValues();
+  let found = false;
+  
+  for (let i = 1; i < indexData.length && !found; i++) {
+    const sheetName = indexData[i][0];
+    const monthSheet = ss.getSheetByName(sheetName);
+    
+    if (monthSheet) {
+      const reportData = monthSheet.getDataRange().getValues();
+      
+      for (let j = 1; j < reportData.length; j++) {
+        if (reportData[j][1] === reportId) {
+          // Update the report row, keeping timestamp, reportId, createdBy unchanged
+          monthSheet.getRange(j + 1, 4).setValue(reportDate); // Date
+          monthSheet.getRange(j + 1, 5).setValue(shift); // Shift
+          monthSheet.getRange(j + 1, 6).setValue(machineEquipment); // Machine/Equipment
+          monthSheet.getRange(j + 1, 7).setValue(hourWorked); // Hour Worked
+          monthSheet.getRange(j + 1, 8).setValue(hmReportDescription); // Description
+          monthSheet.getRange(j + 1, 9).setValue(assignedTo); // AssignedTo
+          monthSheet.getRange(j + 1, 10).setValue(status); // Status
+          monthSheet.getRange(j + 1, 11).setValue(location); // Location
+          monthSheet.getRange(j + 1, 12).setValue(remarks); // Remarks
+          monthSheet.getRange(j + 1, 13).setValue(itemDescription); // ItemDescription
+          
+          found = true;
+          break;
+        }
+      }
+    }
+  }
+  
+  return showHomePage(email, found ? 'Report updated successfully!' : 'Report not found.');
+}
+
+function handleDeleteReport(e) {
+  const email = e.parameter.userEmail;
+  const reportId = e.parameter.reportId;
+  
+  const userInfo = getUserInfo(email);
+  if (!userInfo) {
+    return showLoginPage('Session expired. Please login again.');
+  }
+  
+  // Find the report across all monthly sheets using the index
+  const indexData = indexSheet.getDataRange().getValues();
+  let found = false;
+  
+  for (let i = 1; i < indexData.length && !found; i++) {
+    const sheetName = indexData[i][0];
+    const monthSheet = ss.getSheetByName(sheetName);
+    
+    if (monthSheet) {
+      const reportData = monthSheet.getDataRange().getValues();
+      
+      for (let j = 1; j < reportData.length; j++) {
+        if (reportData[j][1] === reportId) {
+          // Delete the report row
+          monthSheet.deleteRow(j + 1);
+          
+          // Update report count in the index (decrease by 1)
+          updateReportCount(sheetName, -1);
+          
+          found = true;
+          break;
+        }
+      }
+    }
+  }
+  
+  return showHomePage(email, found ? 'Report deleted successfully!' : 'Report not found.');
+}
+
+function getAllReports(filterOptions = {}) {
+  const reports = [];
+  const indexData = indexSheet.getDataRange().getValues();
+  
+  // Extract filter options with defaults
+  const filterType = filterOptions.type || 'all';
+  const dateFilter = filterOptions.date || null;
+  const statusFilter = filterOptions.status || null;
+  
+  // Initialize filter dates if provided
+  let startDate, endDate;
+  let filterYear, filterMonth, filterWeek;
+  
+  if (dateFilter) {
+    if (filterType === 'weekly') {
+      const weekDates = getWeekDates(new Date(dateFilter));
+      startDate = weekDates.startDate;
+      endDate = weekDates.endDate;
+      filterWeek = getWeekNumber(new Date(dateFilter));
+      filterYear = new Date(dateFilter).getFullYear();
+    } else if (filterType === 'monthly') {
+      const filterDate = new Date(dateFilter);
+      filterYear = filterDate.getFullYear();
+      filterMonth = filterDate.getMonth() + 1;
+    } else if (filterType === 'yearly') {
+      filterYear = new Date(dateFilter).getFullYear();
+    } else if (filterType === 'daily') {
+      // Handle daily filter (exact date)
+      const exactDate = new Date(dateFilter);
+      startDate = new Date(exactDate);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(exactDate);
+      endDate.setHours(23, 59, 59, 999);      
+    }
+  }
+  
+  // Log for debugging
+  Logger.log("FilterOptions: " + JSON.stringify(filterOptions));
+  Logger.log("FilterType: " + filterType);
+  Logger.log("FilterYear: " + filterYear);
+  Logger.log("FilterMonth: " + filterMonth);
+  Logger.log("FilterWeek: " + filterWeek);
+  
+  // For each month sheet in the index
+  for (let i = 1; i < indexData.length; i++) {
+    const sheetName = indexData[i][0];
+    const sheetYear = indexData[i][1];
+    const sheetMonth = indexData[i][2];
+    
+    // Debug logs
+    Logger.log("Processing sheet: " + sheetName + ", Year: " + sheetYear + ", Month: " + sheetMonth);
+    
+    // Skip sheets that don't match our year filter
+    if (filterType === 'yearly' && filterYear && sheetYear != filterYear) {
+      Logger.log("Skipping sheet due to year mismatch");
+      continue;
+    }
+    
+    // Skip sheets that don't match our month filter
+    if (filterType === 'monthly' && filterYear && filterMonth && 
+        (sheetYear != filterYear || sheetMonth != filterMonth)) {
+      Logger.log("Skipping sheet due to month mismatch");
+      continue;
+    }
+    
+    const monthSheet = ss.getSheetByName(sheetName);
+    if (!monthSheet) {
+      Logger.log("Sheet not found: " + sheetName);
+      continue;
+    }
+    
+    const reportData = monthSheet.getDataRange().getValues();
+    Logger.log("Found " + reportData.length + " rows in sheet");
+    
+    // For each report in the sheet (skip header row)
+    for (let j = 1; j < reportData.length; j++) {
+      const reportDate = reportData[j][3]; // Date field
+      // Convert date if it's not already a Date object
+      const dateObj = reportDate instanceof Date ? reportDate : new Date(reportDate);
+      
+      const reportYear = reportData[j][13]; // Year column
+      const reportMonth = reportData[j][14]; // Month column
+      const reportWeek = reportData[j][15]; // Week column
+      const reportStatus = reportData[j][9]; // Status column
+      
+      // Debug specific report
+      if (j === 1) {
+        Logger.log("Sample report - Date: " + dateObj + ", Year: " + reportYear + 
+                   ", Month: " + reportMonth + ", Week: " + reportWeek + 
+                   ", Status: " + reportStatus);
+      }
+      
+      // Filter by weekly if needed
+      if (filterType === 'weekly' && filterWeek && 
+          (reportYear != filterYear || reportWeek != filterWeek)) {
+        continue;
+      }
+      
+      // Apply daily filter if needed
+      if (filterType === 'daily' && startDate && endDate) {
+        // Skip if the report date doesn't match our exact date filter
+        if (dateObj < startDate || dateObj > endDate) {
+          continue;
+        }
+      }
+      
+      // Apply status filter if provided
+      if (statusFilter && reportStatus !== statusFilter) {
+        continue;
+      }
+      
+      // Map the sheet columns to proper field names that match the HTML
+      reports.push({
+        timestamp: reportData[j][0],
+        reportId: reportData[j][1],
+        createdBy: reportData[j][2],
+        date: formatDateString(reportData[j][3]), // Format date for consistency
+        shift: reportData[j][4],
+        machineEquipment: reportData[j][5],
+        hoursWorked: reportData[j][6], // Match HTML field name
+        description: reportData[j][7], // Match HTML field name 
+        assignedTo: reportData[j][8],
+        status: reportData[j][9],
+        location: reportData[j][10],
+        remarks: reportData[j][11],
+        itemDescription: reportData[j][12],
+        year: reportYear,
+        month: reportMonth,
+        week: reportWeek
+      });
+    }
+  }
+  
+  // Sort reports by timestamp (most recent first)
+  reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  
+  Logger.log("Returning " + reports.length + " reports after filtering");
+  return reports;
+}
+
+// This function will be called from the client-side to fetch filtered reports
+function getFilteredReports(filterOptions) {
+  try {
+    Logger.log("getFilteredReports called with: " + JSON.stringify(filterOptions));
+    const reports = getAllReports(filterOptions);
+    Logger.log("Returning " + reports.length + " filtered reports");
+    return reports;
+  } catch (error) {
+    Logger.log('Error in getFilteredReports: ' + error);
+    return [];
+  }
+}
